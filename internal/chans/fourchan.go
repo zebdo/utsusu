@@ -8,7 +8,7 @@ import (
 "strconv"
 "time"
 
-"github.com/zebdo/utsusu/internal/core"
+"github.com/zebdo/utsusu/internal/structs"
 )
 
 type FourChanConfig struct {
@@ -73,7 +73,7 @@ func (fc *FourChan) get(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (fc *FourChan) FetchThread(board, threadID string) (*core.Thread, error) {
+func (fc *FourChan) FetchThread(board, threadID string) (*structs.Thread, error) {
 	url := fmt.Sprintf("https://a.4cdn.org/%s/thread/%s.json", board, threadID)
 	b, err := fc.get(url)
 	if err != nil { return nil, err }
@@ -81,15 +81,15 @@ func (fc *FourChan) FetchThread(board, threadID string) (*core.Thread, error) {
 	var tr fcThreadResp
 	if err := json.Unmarshal(b, &tr); err != nil { return nil, err }
 
-	th := &core.Thread{ ID: threadID, Board: board }
+	th := &structs.Thread{ ID: threadID, Board: board }
 	if len(tr.Posts) > 0 {
 		if tr.Posts[0].Sticky != nil && *tr.Posts[0].Sticky == 1 { th.Sticky = true }
 		if tr.Posts[0].Closed != nil && *tr.Posts[0].Closed == 1 { th.Closed = true }
 	}
-	th.Posts = make([]core.Post, 0, len(tr.Posts))
+	th.Posts = make([]structs.Post, 0, len(tr.Posts))
 
 	for _, p := range tr.Posts {
-		post := core.Post{
+		post := structs.Post{
 			ID: strconv.FormatInt(p.No, 10),
 			Author: p.Name,
 			Content: p.Com,
@@ -99,24 +99,24 @@ func (fc *FourChan) FetchThread(board, threadID string) (*core.Thread, error) {
 		if p.Tim != nil && p.Ext != "" {
 			imgURL := fmt.Sprintf("https://i.4cdn.org/%s/%d%s", board, *p.Tim, p.Ext)
 			thumb := fmt.Sprintf("https://i.4cdn.org/%s/%ds.jpg", board, *p.Tim)
-			post.Images = append(post.Images, core.Image{ URL: imgURL, Thumbnail: thumb, MD5: p.MD5 })
+			post.Images = append(post.Images, structs.Image{ URL: imgURL, Thumbnail: thumb, MD5: p.MD5 })
 		}
 		th.Posts = append(th.Posts, post)
 	}
 	return th, nil
 }
 
-func (fc *FourChan) FetchBoard(board string, limit int) ([]core.Thread, error) {
+func (fc *FourChan) FetchBoard(board string, limit int) ([]structs.Thread, error) {
 	url := fmt.Sprintf("https://a.4cdn.org/%s/catalog.json", board)
 	b, err := fc.get(url)
 	if err != nil { return nil, err }
 	var pages []fcCatalogPage
 	if err := json.Unmarshal(b, &pages); err != nil { return nil, err }
-	threads := make([]core.Thread, 0)
+	threads := make([]structs.Thread, 0)
 	count := 0
 	for _, pg := range pages {
 		for _, t := range pg.Threads {
-			th := core.Thread{ ID: strconv.FormatInt(t.No, 10), Board: board }
+			th := structs.Thread{ ID: strconv.FormatInt(t.No, 10), Board: board }
 			if t.Sticky != nil && *t.Sticky == 1 { th.Sticky = true }
 			if t.Closed != nil && *t.Closed == 1 { th.Closed = true }
 			if th.Metadata == nil { th.Metadata = map[string]any{} }

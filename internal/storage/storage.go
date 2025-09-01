@@ -1,9 +1,9 @@
 package storage
 
-import "github.com/zebdo/utsusu/internal/core"
+import "github.com/zebdo/utsusu/internal/structs"
 
 type Storage interface {
-	SaveThread(thread core.Thread) error
-	GetThread(id string) (*core.Thread, error)
-	ListThreads(board string) ([]core.Thread, error)
+	SaveThread(thread structs.Thread) error
+	GetThread(id string) (*structs.Thread, error)
+	ListThreads(board string) ([]structs.Thread, error)
 }

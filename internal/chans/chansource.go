@@ -1,9 +1,9 @@
 package chans
 
-import "github.com/zebdo/utsusu/internal/core"
+import "github.com/zebdo/utsusu/internal/structs"
 
 type ChanSource interface {
-	FetchThread(board, threadID string) (*core.Thread, error)
-	FetchBoard(board string, limit int) ([]core.Thread, error)
+	FetchThread(board, threadID string) (*structs.Thread, error)
+	FetchBoard(board string, limit int) ([]structs.Thread, error)
 	Name() string
 }

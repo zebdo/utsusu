@@ -9,7 +9,7 @@ import (
 
 _ "modernc.org/sqlite"
 
-"github.com/zebdo/utsusu/internal/core"
+"github.com/zebdo/utsusu/internal/structs"
 )
 
 type sqliteStore struct {
@@ -53,7 +53,7 @@ func (s *sqliteStore) init(ctx context.Context) error {
 	return nil
 }
 
-func (s *sqliteStore) SaveThread(t core.Thread) error {
+func (s *sqliteStore) SaveThread(t structs.Thread) error {
 	ctx := context.Background()
 	meta, _ := json.Marshal(t.Metadata)
 	_, err := s.db.ExecContext(ctx,
@@ -91,10 +91,10 @@ func (s *sqliteStore) SaveThread(t core.Thread) error {
 	return nil
 }
 
-func (s *sqliteStore) GetThread(id string) (*core.Thread, error) {
+func (s *sqliteStore) GetThread(id string) (*structs.Thread, error) {
 	ctx := context.Background()
 	row := s.db.QueryRowContext(ctx, `SELECT id, board, sticky, closed, metadata FROM threads WHERE id=?`, id)
-	var th core.Thread
+	var th structs.Thread
 	var meta string
 	var sticky, closed int
 	if err := row.Scan(&th.ID, &th.Board, &sticky, &closed, &meta); err != nil {
@@ -108,7 +108,7 @@ func (s *sqliteStore) GetThread(id string) (*core.Thread, error) {
 	if err != nil { return nil, err }
 	defer rows2.Close()
 	for rows2.Next() {
-		var p core.Post
+		var p structs.Post
 		var imgs, pm string
 		if err := rows2.Scan(&p.ID, &p.Author, &p.Content, &p.Timestamp, &imgs, &pm); err != nil { return nil, err }
 		_ = json.Unmarshal([]byte(imgs), &p.Images)
@@ -118,14 +118,14 @@ func (s *sqliteStore) GetThread(id string) (*core.Thread, error) {
 	return &th, nil
 }
 
-func (s *sqliteStore) ListThreads(board string) ([]core.Thread, error) {
+func (s *sqliteStore) ListThreads(board string) ([]structs.Thread, error) {
 	ctx := context.Background()
 	rows, err := s.db.QueryContext(ctx, `SELECT id, board, sticky, closed, metadata FROM threads WHERE board=? ORDER BY updated_at DESC`, board)
 	if err != nil { return nil, err }
 	defer rows.Close()
-	var out []core.Thread
+	var out []structs.Thread
 	for rows.Next() {
-		var th core.Thread
+		var th structs.Thread
 		var sticky, closed int
 		var meta string
 		if err := rows.Scan(&th.ID, &th.Board, &sticky, &closed, &meta); err != nil { return nil, err }
