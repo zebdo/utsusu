@@ -1,0 +1,5 @@
+port: "7200"
+sqlite_path: "utsusu.db"
+admin_token: "secret"
+user_agent: "utsusu/0.1 (+https://example.com)"
+default_watch_interval: "30s"
